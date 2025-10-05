@@ -256,7 +256,7 @@ class RightPhoto extends StatelessWidget {
         children: [
           // Use AssetImage('assets/model.jpg') after adding asset.
           Image.asset(
-            'assets/model.jpg',
+            'assets/1.webp',
             fit: BoxFit.cover,
             errorBuilder: (c, e, s) {
               return const Center(
