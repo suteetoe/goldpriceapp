@@ -161,7 +161,7 @@ class _LeftPanelState extends State<LeftPanel> {
       final formattedPrice = price.toStringAsFixed(2);
       final parts = formattedPrice.split('.');
       final integerPart = parts[0];
-      final decimalPart = parts.length > 1 ? parts[1] : '';
+      final decimalPart = parts.length > 1 ? parts[1] : '00';
 
       // Add thousand separators
       final regex = RegExp(r'(\d)(?=(\d{3})+(?!\d))');
@@ -170,9 +170,7 @@ class _LeftPanelState extends State<LeftPanel> {
         (match) => '${match.group(1)},',
       );
 
-      return decimalPart != '00'
-          ? '$formattedInteger.$decimalPart'
-          : formattedInteger;
+      return '$formattedInteger.$decimalPart';
     }
 
     return Container(
