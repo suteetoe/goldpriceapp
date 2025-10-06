@@ -84,12 +84,9 @@ class PriceBoardPage extends StatelessWidget {
                         )
                         : const Column(
                           children: [
-                            const SizedBox(
-                              height: 560,
-                              child: RightSlideshow(),
-                            ),
+                            Expanded(flex: 7, child: LeftPanel()),
                             const SizedBox(height: 12),
-                            const LeftPanel(),
+                            Expanded(flex: 3, child: RightSlideshow()),
                           ],
                         ),
               ),
@@ -156,6 +153,8 @@ class _LeftPanelState extends State<LeftPanel> {
   Widget build(BuildContext context) {
     const maroon = Color(0xFF6B1F22);
     final white = Colors.white;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isSmallScreen = screenWidth < 600;
 
     String formatPrice(double price) {
       final formattedPrice = price.toStringAsFixed(2);
@@ -175,25 +174,31 @@ class _LeftPanelState extends State<LeftPanel> {
 
     return Container(
       color: maroon,
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 28),
+      padding: EdgeInsets.symmetric(
+        horizontal: isSmallScreen ? 16 : 24,
+        vertical: isSmallScreen ? 16 : 28,
+      ),
       child: DefaultTextStyle(
-        style: GoogleFonts.notoSansThai(color: white, fontSize: 18),
+        style: GoogleFonts.notoSansThai(
+          color: white,
+          fontSize: isSmallScreen ? 14 : 18,
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const _BrandHeader(),
-            const SizedBox(height: 18),
+            _BrandHeader(isSmallScreen: isSmallScreen),
+            SizedBox(height: isSmallScreen ? 12 : 18),
             Center(
               child: Text(
                 'ทองคำแท่ง',
                 style: GoogleFonts.notoSansThai(
                   color: white,
-                  fontSize: 32,
+                  fontSize: isSmallScreen ? 24 : 32,
                   fontWeight: FontWeight.w700,
                 ),
               ),
             ),
-            const SizedBox(height: 10),
+            SizedBox(height: isSmallScreen ? 6 : 10),
             _isLoading
                 ? const Center(
                   child: CircularProgressIndicator(color: Colors.white),
@@ -204,8 +209,9 @@ class _LeftPanelState extends State<LeftPanel> {
                       _goldPrice != null
                           ? formatPrice(_goldPrice!.barBuy)
                           : '0',
+                  isSmallScreen: isSmallScreen,
                 ),
-            const SizedBox(height: 10),
+            SizedBox(height: isSmallScreen ? 6 : 10),
             _isLoading
                 ? const Center(
                   child: CircularProgressIndicator(color: Colors.white),
@@ -216,19 +222,20 @@ class _LeftPanelState extends State<LeftPanel> {
                       _goldPrice != null
                           ? formatPrice(_goldPrice!.barSell)
                           : '0',
+                  isSmallScreen: isSmallScreen,
                 ),
-            const SizedBox(height: 26),
+            SizedBox(height: isSmallScreen ? 16 : 26),
             Center(
               child: Text(
                 'ทองคำรูปพรรณ',
                 style: GoogleFonts.notoSansThai(
                   color: white,
-                  fontSize: 32,
+                  fontSize: isSmallScreen ? 24 : 32,
                   fontWeight: FontWeight.w700,
                 ),
               ),
             ),
-            const SizedBox(height: 10),
+            SizedBox(height: isSmallScreen ? 6 : 10),
             _isLoading
                 ? const Center(
                   child: CircularProgressIndicator(color: Colors.white),
@@ -239,8 +246,9 @@ class _LeftPanelState extends State<LeftPanel> {
                       _goldPrice != null
                           ? formatPrice(_goldPrice!.jewelryBuy)
                           : '0',
+                  isSmallScreen: isSmallScreen,
                 ),
-            const SizedBox(height: 10),
+            SizedBox(height: isSmallScreen ? 6 : 10),
             _isLoading
                 ? const Center(
                   child: CircularProgressIndicator(color: Colors.white),
@@ -251,6 +259,7 @@ class _LeftPanelState extends State<LeftPanel> {
                       _goldPrice != null
                           ? formatPrice(_goldPrice!.jewelrySell)
                           : '0',
+                  isSmallScreen: isSmallScreen,
                 ),
             const Spacer(),
             Center(
@@ -270,7 +279,8 @@ class _LeftPanelState extends State<LeftPanel> {
 }
 
 class _BrandHeader extends StatelessWidget {
-  const _BrandHeader();
+  final bool isSmallScreen;
+  const _BrandHeader({required this.isSmallScreen});
 
   @override
   Widget build(BuildContext context) {
@@ -279,21 +289,24 @@ class _BrandHeader extends StatelessWidget {
       children: [
         Center(
           child: Container(
-            width: 54,
-            height: 54,
+            width: isSmallScreen ? 40 : 54,
+            height: isSmallScreen ? 40 : 54,
             decoration: const BoxDecoration(
               shape: BoxShape.circle,
               color: gold,
             ),
-            child: const Center(
+            child: Center(
               child: Text(
                 'G',
-                style: TextStyle(fontSize: 30, fontWeight: FontWeight.w800),
+                style: TextStyle(
+                  fontSize: isSmallScreen ? 22 : 30,
+                  fontWeight: FontWeight.w800,
+                ),
               ),
             ),
           ),
         ),
-        const SizedBox(height: 10),
+        SizedBox(height: isSmallScreen ? 6 : 10),
         Center(
           child: Column(
             children: [
@@ -301,16 +314,16 @@ class _BrandHeader extends StatelessWidget {
                 'GOLEPRICE',
                 style: GoogleFonts.montserrat(
                   color: gold,
-                  fontSize: 34,
+                  fontSize: isSmallScreen ? 24 : 34,
                   fontWeight: FontWeight.w700,
-                  letterSpacing: 2,
+                  letterSpacing: isSmallScreen ? 1 : 2,
                 ),
               ),
               Text(
                 'ห้างทองทดสอบ',
                 style: GoogleFonts.notoSansThai(
                   color: Colors.white,
-                  fontSize: 16,
+                  fontSize: isSmallScreen ? 12 : 16,
                 ),
               ),
             ],
@@ -324,7 +337,13 @@ class _BrandHeader extends StatelessWidget {
 class PriceRow extends StatelessWidget {
   final String label;
   final String value;
-  const PriceRow({super.key, required this.label, required this.value});
+  final bool isSmallScreen;
+  const PriceRow({
+    super.key,
+    required this.label,
+    required this.value,
+    required this.isSmallScreen,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -335,37 +354,45 @@ class PriceRow extends StatelessWidget {
         Expanded(
           flex: 5,
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
-            decoration: const BoxDecoration(
+            padding: EdgeInsets.symmetric(
+              horizontal: isSmallScreen ? 12 : 18,
+              vertical: isSmallScreen ? 8 : 12,
+            ),
+            decoration: BoxDecoration(
               color: gold,
-              borderRadius: BorderRadius.horizontal(left: Radius.circular(18)),
+              borderRadius: BorderRadius.horizontal(
+                left: Radius.circular(isSmallScreen ? 12 : 18),
+              ),
             ),
             child: Text(
               label,
               textAlign: TextAlign.center,
               style: GoogleFonts.notoSansThai(
                 color: Colors.black87,
-                fontSize: 24,
+                fontSize: isSmallScreen ? 16 : 24,
                 fontWeight: FontWeight.w700,
               ),
             ),
           ),
         ),
-        const SizedBox(width: 8),
+        SizedBox(width: isSmallScreen ? 4 : 8),
         Expanded(
           flex: 7,
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            padding: EdgeInsets.symmetric(
+              horizontal: isSmallScreen ? 8 : 16,
+              vertical: isSmallScreen ? 6 : 10,
+            ),
             decoration: BoxDecoration(
               color: white,
-              borderRadius: BorderRadius.circular(18),
+              borderRadius: BorderRadius.circular(isSmallScreen ? 12 : 18),
             ),
             child: Text(
               value,
               textAlign: TextAlign.center,
               style: GoogleFonts.montserrat(
                 color: Colors.black,
-                fontSize: 32,
+                fontSize: isSmallScreen ? 20 : 32,
                 fontWeight: FontWeight.w800,
               ),
             ),
