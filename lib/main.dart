@@ -1,6 +1,34 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
+import 'dart:convert';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:http/http.dart' as http;
+
+class GoldPrice {
+  final double barSell;
+  final double barBuy;
+  final double jewelrySell;
+  final double jewelryBuy;
+  final String releaseAt;
+
+  GoldPrice({
+    required this.barSell,
+    required this.barBuy,
+    required this.jewelrySell,
+    required this.jewelryBuy,
+    required this.releaseAt,
+  });
+
+  factory GoldPrice.fromJson(Map<String, dynamic> json) {
+    return GoldPrice(
+      barSell: (json['BarSell'] ?? 0).toDouble(),
+      barBuy: (json['BarBuy'] ?? 0).toDouble(),
+      jewelrySell: (json['JewelrySell'] ?? 0).toDouble(),
+      jewelryBuy: (json['JewelryBuy'] ?? 0).toDouble(),
+      releaseAt: json['ReleaseAt'] ?? '',
+    );
+  }
+}
 
 void main() {
   runApp(const GoldSignApp());
@@ -12,7 +40,6 @@ class GoldSignApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     const maroon = Color(0xFF6B1F22);
-    const gold = Color(0xFFF1D38A);
 
     return MaterialApp(
       title: 'GOLDSIGN',
@@ -74,14 +101,79 @@ class PriceBoardPage extends StatelessWidget {
   }
 }
 
-class LeftPanel extends StatelessWidget {
+class LeftPanel extends StatefulWidget {
   const LeftPanel({super.key});
+
+  @override
+  State<LeftPanel> createState() => _LeftPanelState();
+}
+
+class _LeftPanelState extends State<LeftPanel> {
+  GoldPrice? _goldPrice;
+  Timer? _timer;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchGoldPrice();
+    _timer = Timer.periodic(const Duration(seconds: 5), (_) {
+      _fetchGoldPrice();
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  Future<void> _fetchGoldPrice() async {
+    try {
+      final response = await http.get(
+        Uri.parse('https://goldprice.dedecafe.com/goldprice'),
+      );
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> data = json.decode(response.body);
+        if (mounted) {
+          setState(() {
+            _goldPrice = GoldPrice.fromJson(data);
+            _isLoading = false;
+          });
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     const maroon = Color(0xFF6B1F22);
-    const gold = Color(0xFFF1D38A);
     final white = Colors.white;
+
+    String formatPrice(double price) {
+      final formattedPrice = price.toStringAsFixed(2);
+      final parts = formattedPrice.split('.');
+      final integerPart = parts[0];
+      final decimalPart = parts.length > 1 ? parts[1] : '';
+
+      // Add thousand separators
+      final regex = RegExp(r'(\d)(?=(\d{3})+(?!\d))');
+      final formattedInteger = integerPart.replaceAllMapped(
+        regex,
+        (match) => '${match.group(1)},',
+      );
+
+      return decimalPart != '00'
+          ? '$formattedInteger.$decimalPart'
+          : formattedInteger;
+    }
 
     return Container(
       color: maroon,
@@ -104,9 +196,29 @@ class LeftPanel extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 10),
-            const PriceRow(label: 'รับซื้อ', value: '30,400'),
+            _isLoading
+                ? const Center(
+                  child: CircularProgressIndicator(color: Colors.white),
+                )
+                : PriceRow(
+                  label: 'รับซื้อ',
+                  value:
+                      _goldPrice != null
+                          ? formatPrice(_goldPrice!.barBuy)
+                          : '0',
+                ),
             const SizedBox(height: 10),
-            const PriceRow(label: 'ขายออก', value: '30,500'),
+            _isLoading
+                ? const Center(
+                  child: CircularProgressIndicator(color: Colors.white),
+                )
+                : PriceRow(
+                  label: 'ขายออก',
+                  value:
+                      _goldPrice != null
+                          ? formatPrice(_goldPrice!.barSell)
+                          : '0',
+                ),
             const SizedBox(height: 26),
             Center(
               child: Text(
@@ -119,13 +231,33 @@ class LeftPanel extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 10),
-            const PriceRow(label: 'รับซื้อ', value: '28,880'),
+            _isLoading
+                ? const Center(
+                  child: CircularProgressIndicator(color: Colors.white),
+                )
+                : PriceRow(
+                  label: 'รับซื้อ',
+                  value:
+                      _goldPrice != null
+                          ? formatPrice(_goldPrice!.jewelryBuy)
+                          : '0',
+                ),
             const SizedBox(height: 10),
-            const PriceRow(label: 'ขายออก', value: '31,000'),
+            _isLoading
+                ? const Center(
+                  child: CircularProgressIndicator(color: Colors.white),
+                )
+                : PriceRow(
+                  label: 'ขายออก',
+                  value:
+                      _goldPrice != null
+                          ? formatPrice(_goldPrice!.jewelrySell)
+                          : '0',
+                ),
             const Spacer(),
             Center(
               child: Text(
-                'ข้อมูลล่าสุด ณ วันที่ 10/05/2565 11:03',
+                _goldPrice?.releaseAt ?? 'กำลังโหลดข้อมูล...',
                 style: GoogleFonts.notoSansThai(
                   color: white.withOpacity(0.8),
                   fontSize: 12,
